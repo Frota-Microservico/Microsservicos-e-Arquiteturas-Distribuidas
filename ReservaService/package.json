@@ -1,0 +1,17 @@
+{
+  "name": "reservaservice",
+  "version": "1.0.0",
+  "description": "Serviço responsável por gerenciar a reserva de veículos no sistema de gerenciamento de frotas.  \r Publica eventos no Kafka quando uma reserva é criada.",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  }
+}

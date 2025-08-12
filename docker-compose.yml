@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT= ainda vai ser configurado
+      - KAFKA_CFG_LISTENERS=PLAINTEXT:ainda vai ser configurado
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT:ainda vai ser configurado
+      - ALLOW_PLAINTEXT_LISTENER=ainda vai ser configurado
+    depends_on:
+      - zookeeper
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ainda vai ser configurado
+      POSTGRES_PASSWORD: ainda vai ser configurado
+      POSTGRES_DB: ainda vai ser configurado
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+
+  reserva-service:
+    build: ./reserva-service
+    container_name: reserva-service
+    ports:
+      - "3001:3000"
+    environment:
+      - KAFKA_BROKER=kafka:ainda vai ser configurado
+      - DB_HOST=ainda vai ser configurado
+      - DB_PORT=ainda vai ser configurado
+      - DB_USER=ainda vai ser configurado
+      - DB_PASSWORD=ainda vai ser configurado
+      - DB_NAME=ainda vai ser configurado
+    depends_on:
+      - kafka
+      - postgres
+
+  devolucao-service:
+    build: ./devolucao-service
+    container_name: devolucao-service
+    ports:
+      - "3002:3000"
+    environment:
+      - KAFKA_BROKER=kafka:ainda vai ser configurado
+      - DB_HOST=ainda vai ser configurado
+      - DB_PORT=ainda vai ser configurado
+      - DB_USER=ainda vai ser configurado
+      - DB_PASSWORD=ainda vai ser configurado
+      - DB_NAME=ainda vai ser configurado
+    depends_on:
+      - kafka
+      - postgres
+
+  veiculo-service:
+    build: ./veiculo-service
+    container_name: veiculo-service
+    ports:
+      - "3003:3000"
+    environment:
+      - KAFKA_BROKER=kafka:ainda vai ser configurado
+      - DB_HOST=ainda vai ser configurado
+      - DB_PORT=ainda vai ser configurado
+      - DB_USER=ainda vai ser configurado
+      - DB_PASSWORD=ainda vai ser configurado
+      - DB_NAME=ainda vai ser configurado
+    depends_on:
+      - kafka
+      - postgres
+
+  notificacao-service:
+    build: ./notificacao-service
+    container_name: notificacao-service
+    ports:
+      - "3004:3000"
+    environment:
+      - KAFKA_BROKER=kafka:ainda vai ser configurado
+      - SMTP_HOST=ainda vai ser configurado
+      - SMTP_PORT=ainda vai ser configurado
+    depends_on:
+      - kafka
+      - mailhog
+
+  historico-service:
+    build: ./historico-service
+    container_name: historico-service
+    ports:
+      - "3005:3000"
+    environment:
+      - KAFKA_BROKER=kafka:ainda vai ser configurado
+      - DB_HOST=ainda vai ser configurado
+      - DB_PORT=ainda vai ser configurado
+      - DB_USER=ainda vai ser configurado
+      - DB_PASSWORD=ainda vai ser configurado
+      - DB_NAME=ainda vai ser configurado
+    depends_on:
+      - kafka
+      - postgres
+
+  manutencao-service:
+    build: ./manutencao-service
+    container_name: manutencao-service
+    ports:
+      - "3006:3000"
+    environment:
+      - KAFKA_BROKER=kafka:ainda vai ser configurado
+      - DB_HOST=ainda vai ser configurado
+      - DB_PORT=ainda vai ser configurado
+      - DB_USER=ainda vai ser configurado
+      - DB_PASSWORD=ainda vai ser configurado
+      - DB_NAME=ainda vai ser configurado
+    depends_on:
+      - kafka
+      - postgres
+
+volumes:
+  postgres_data:
