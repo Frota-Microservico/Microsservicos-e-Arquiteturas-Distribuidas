@@ -7,16 +7,24 @@ export const Reserva = sequelize.define("Reserva", {
     autoIncrement: true,
     primaryKey: true
   },
-  cliente: {
+  id_usuario: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  veiculo: {
+  id_veiculo: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  data_reserva: {
+  status: {
+    type: DataTypes.ENUM("ATIVA", "FINALIZADA"),
+    allowNull: false
+  },
+  dt_reserva: {
     type: DataTypes.DATE,
     allowNull: false
-  }
+  },
+  dt_devolucao: {
+    type: DataTypes.DATE,
+    allowNull: false
+  },
 });
