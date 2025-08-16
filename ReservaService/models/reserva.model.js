@@ -1,18 +1,19 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../database/config.js";
+import { VeiculoModel } from "./veiculo.model.js";
 
-export const Reserva = sequelize.define("Reserva", {
+export const ReservaModel = sequelize.define("reserva", {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true
   },
   id_usuario: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   id_veiculo: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   status: {
@@ -28,3 +29,7 @@ export const Reserva = sequelize.define("Reserva", {
     allowNull: false
   },
 });
+
+// RELACIONAMENTO 1:N
+VeiculoModel.hasMany(ReservaModel, { foreignKey: "id_veiculo" });
+ReservaModel.belongsTo(VeiculoModel, {foreignKey: "id_veiculo"});

@@ -4,7 +4,7 @@ import { ReservaController } from "../controllers/reserva.controller.js";
 const reservaController = new ReservaController();
 const router = Router();
 
-router.get("/hello-world",reservaController.helloWorld);
+router.get("/api/hello-world",reservaController.helloWorld);
 
 router.post("/api/reserva",reservaController.reservar);
 

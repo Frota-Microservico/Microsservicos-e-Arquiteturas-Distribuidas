@@ -15,8 +15,9 @@ export class ReservaController {
         try {
             await ReservaService.postReservaVeiculos(req, res)
         } catch (error) {
-            return res.status(error.status)
-                .json({ status: error.status, detail: error.message });
+            console.log(error);
+            return res.status(500)
+                .json({ status: 500, detail: "Erro interno do servidor" });
         }
     }
 }
