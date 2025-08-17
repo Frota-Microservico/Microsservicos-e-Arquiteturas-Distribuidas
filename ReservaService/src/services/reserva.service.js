@@ -6,24 +6,15 @@ export class ReservaService {
     }
 
     static async postReservaVeiculos(req, res) {
-        const body = req.body;
-        
-        if (body.idUsuario === undefined || body.idVeiculo === undefined) {
-            return res.status(400).json({
-                status: 400,
-                detail: "id_usuario e id_veiculo são obrigatórios"
-            });
-        }
+        const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
 
         const reserva = await ReservaModel.create({
-            id_usuario: body.idUsuario,
-            id_veiculo: body.idVeiculo,
+            id_usuario: idUsuario,
+            id_veiculo: idVeiculo,
             status: "ATIVA",
-            dt_reserva: body.dt_reserva,
-            dt_devolucao: body.dt_devolucao
+            dt_reserva: dt_reserva,
+            dt_devolucao: dt_devolucao
         });
-
-        console.log(reserva);
 
         return res.status(201).json({
             status: 201,

@@ -11,9 +11,15 @@ export class ReservaController {
         }
     }
 
-    async reservar(req, res){
+    async reservar(req, res) {
         try {
-            await ReservaService.postReservaVeiculos(req, res)
+            const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
+
+            if (!idUsuario || !idVeiculo || !dt_reserva || !dt_devolucao) {
+                return res.status(400).json({ status: 400, detail: "Dados inválidos" });
+            }
+            
+            return await ReservaService.postReservaVeiculos(req, res)
         } catch (error) {
             console.log(error);
             return res.status(500)
