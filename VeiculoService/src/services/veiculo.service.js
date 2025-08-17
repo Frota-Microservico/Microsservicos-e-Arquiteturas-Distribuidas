@@ -1,4 +1,4 @@
-import { VeiculoModel } from "../../../ReservaService/models/veiculo.model.js";
+import { VeiculoModel } from "../../models/veiculo.model.js";
 
 export class VeiculoService {
 
