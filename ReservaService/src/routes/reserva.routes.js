@@ -6,6 +6,14 @@ const router = Router();
 
 router.get("/api/hello-world", reservaController.helloWorld);
 
-router.post("/api/reserva", reservaController.reservar);
+router.post("/api/reservas", reservaController.reservar);
+
+router.get("/api/reservas", reservaController.listarReserva);
+
+router.get("/api/reservas/:id", reservaController.procurarReserva);
+
+router.delete("/api/reservas/:id", reservaController.deletaReserva);
+
+router.put("/api/reservas/:id", reservaController.updateReserva);
 
 export default router;
