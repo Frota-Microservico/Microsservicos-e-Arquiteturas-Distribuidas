@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import app from './app.js';
 import { sequelize } from "../database/config.js";
+import { connectProducer } from "./kafka/producer.js";
+import { connectConsumer } from "./kafka/consumer.js";
 
 dotenv.config();
 
@@ -14,6 +16,19 @@ dotenv.config();
         console.error('❌ Erro ao conectar no banco:', err);
     }
 })();
+
+const start = async () => {
+  try {
+    await connectProducer();
+    await connectConsumer();
+
+    app.listen(3000, () => console.log("🚀 ReservaService rodando na porta 3000"));
+  } catch (err) {
+    console.error("Erro ao iniciar serviço:", err);
+  }
+};
+
+start();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
