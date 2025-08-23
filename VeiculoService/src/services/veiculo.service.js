@@ -27,4 +27,52 @@ export class VeiculoService {
         return res.status(201).json({ status: 201, veiculo: veiculo });
     }
 
+    static async getListarVeiculos(req, res) {
+
+        const veiculosAtivos = await VeiculoModel.findAll({});
+        return veiculosAtivos;
+    }
+
+    static async getProcuraVeiculo(req, res) {
+        const id = parseInt(req.params.id, 10);
+
+        if (isNaN(id)) {
+            return res.status(400).json({ status: 400, detail: "ID inválido" });
+        }
+
+        try {
+            const veiculoPorId = await VeiculoModel.findByPk(id);
+            return veiculoPorId;
+        } catch (error) {
+            console.log("Erro ao encontrar o cadastro do veiculo");
+            return null;
+        }
+    }
+
+    static async deleteVeiculo(id) {
+        const verificaVeiculo = await VeiculoModel.findByPk(id);
+
+        if (!verificaVeiculo) {
+            return res.status(400).json({ status: 400, detail: "Não foi encontrado o veiculo" });
+        }
+
+        await VeiculoModel.destroy({
+            where: { id: id }
+        });
+
+        return true;
+    }
+
+    static async putVeiculo(id, status) {
+
+        await VeiculoModel.update(
+            {
+                status: status 
+            },
+            { where: { id: id } }
+        );
+
+        return await ReservaModel.findByPk(id);
+    }
+
 }

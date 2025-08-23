@@ -2,9 +2,6 @@ import { where } from "sequelize";
 import { ReservaModel } from "../../models/reserva.model.js";
 
 export class ReservaService {
-    static async getHelloWorld(req, res) {
-        return res.status(200).json({ data: "Hello World" });
-    }
 
     static async postReservaVeiculos(req, res) {
         const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
