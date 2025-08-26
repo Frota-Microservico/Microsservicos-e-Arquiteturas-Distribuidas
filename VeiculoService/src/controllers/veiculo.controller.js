@@ -65,7 +65,7 @@ export class VeiculoController {
         }
     }
 
-    async updateVeicuclo(req, res) {
+    async updateVeiculo(req, res) {
         try {
             const id = parseInt(req.params.id, 10);
             const { status } = req.body;
@@ -78,7 +78,7 @@ export class VeiculoController {
                 return res.status(400).json({ status: 400, detail: "Dados inválidos" });
             }
 
-            const verificaUpdate = await ReservaService.putReserva(id, status);
+            const verificaUpdate = await ReservaService.updateVeiculo(id, status);
 
             if (!verificaUpdate) {
                 return res.status(404).json({ status: 404, detail: "Veiculo não encontrada" });

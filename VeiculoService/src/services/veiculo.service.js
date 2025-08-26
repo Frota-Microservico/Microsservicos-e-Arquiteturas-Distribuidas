@@ -28,12 +28,12 @@ export class VeiculoService {
         return res.status(201).json({ status: 201, veiculo });
     }
 
-    static async getAllVeiculos(req, res) {
+    static async getListarVeiculos(req, res) {
         const veiculos = await VeiculoModel.findAll();
         return res.status(200).json(veiculos);
     }
 
-    static async getVeiculoById(req, res) {
+    static async getProcuraVeiculo(req, res) {
         const { id } = req.params;
         const veiculo = await VeiculoModel.findByPk(id);
 
@@ -64,7 +64,7 @@ export class VeiculoService {
         return res.status(200).json({ status: 200, veiculo });
     }
 
-    static async deleteVeiculo(req, res) {
+    static async deletaVeiculo(req, res) {
         const { id } = req.params;
         const veiculo = await VeiculoModel.findByPk(id);
 
