@@ -3,6 +3,16 @@ import { ReservaService } from "../services/reserva.service.js";
 
 export class ReservaController {
 
+    async helloWorld(req, res) {
+        try {
+            return res.status(200).json({ status: 200, data: "Hello, World!" });
+        } catch (error) {
+            console.log(error);
+            return res.status(500)
+                .json({ status: 500, detail: "Erro interno do servidor" });
+        }
+    }
+
     async reservar(req, res) {
         try {
             const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
@@ -10,7 +20,7 @@ export class ReservaController {
             if (!idUsuario || !idVeiculo || !dt_reserva || !dt_devolucao) {
                 return res.status(400).json({ status: 400, detail: "Dados inválidos" });
             }
-            
+
             return await ReservaService.postReservaVeiculos(req, res)
         } catch (error) {
             console.log(error);
@@ -50,13 +60,13 @@ export class ReservaController {
     async deletaReserva(req, res) {
         try {
             const id = parseInt(req.params.id, 10);
-            
+
             if (isNaN(id)) {
                 return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
 
             const verificaDelete = await ReservaService.deleteReserva(id);
-            
+
             if (!verificaDelete) {
                 return res.status(400).json({ status: 400, detail: "Não foi encontrado a reserva" });
             }
@@ -76,7 +86,7 @@ export class ReservaController {
         try {
             const id = parseInt(req.params.id, 10);
             const { dt_reserva, dt_devolucao } = req.body;
-            
+
             if (isNaN(id)) {
                 return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
