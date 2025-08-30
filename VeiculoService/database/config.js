@@ -1,12 +1,15 @@
 import { Sequelize } from "sequelize";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const sequelize = new Sequelize(
-    "gerenciador_frota", // Nome do banco de dados
-    "gerenciador_frota_user", // Nome do usuário
-    "root", // Senha
+    process.env.DB_NAME || "gerenciador_frota", // Nome do banco de dados
+    process.env.DB_USER || "gerenciador_frota_user", // Nome do usuário
+    process.env.DB_PASSWORD || "root", // Senha
     {
-        host: "localhost", // Dentro de um container tem q ser "dcs-postgres"
+        host: process.env.DB_HOST || "localhost", // Dentro de um container tem q ser "dcs-postgres"
         dialect: "postgres",
-        port: 5433
+        port: process.env.DB_PORT || 5432
     }
 );

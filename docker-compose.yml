@@ -13,6 +13,11 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
     networks:
       - fleet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gerenciador_frota_user -d gerenciador_frota"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4
@@ -55,6 +60,11 @@ services:
       - zookeeper
     networks:
       - fleet-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
   # Microserviços
   reserva-service:
@@ -64,15 +74,17 @@ services:
     restart: always
     environment:
       PORT: 3000
-      DB_HOST: postgres
+      DB_HOST: dcs-postgres
       DB_PORT: 5432
       DB_USER: gerenciador_frota_user
       DB_PASSWORD: root
       DB_NAME: gerenciador_frota
       KAFKA_BROKER: kafka:9092
     depends_on:
-      - dcs-postgres
-      - kafka
+      dcs-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     ports:
       - "3000:3000"
     networks:
@@ -85,15 +97,17 @@ services:
     restart: always
     environment:
       PORT: 3001
-      DB_HOST: postgres
+      DB_HOST: dcs-postgres
       DB_PORT: 5432
       DB_USER: gerenciador_frota_user
       DB_PASSWORD: root
       DB_NAME: gerenciador_frota
       KAFKA_BROKER: kafka:9092
     depends_on:
-      - dcs-postgres
-      - kafka
+      dcs-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     ports:
       - "3001:3001"
     networks:

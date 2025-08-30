@@ -10,3 +10,5 @@ docker exec -it postgres_gerenciador_frota psql -U gerenciador_frota_user
 ```console
 CREATE DATABASE gerenciador_frota OWNER gerenciador_frota_user;
 ```
+
+INSERT INTO users(name, email, "createdAt", "updatedAt") VALUES('thiago', 'thiago.santos@sou.fae.br', NOW(), NOW());

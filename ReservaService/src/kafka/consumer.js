@@ -1,8 +1,11 @@
 import { Kafka } from "kafkajs";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const kafka = new Kafka({
   clientId: "reserva-service",
-  brokers: ["localhost:9092"],
+  brokers: [process.env.KAFKA_BROKER],
 });
 
 const consumer = kafka.consumer({ groupId: "reserva-group" });

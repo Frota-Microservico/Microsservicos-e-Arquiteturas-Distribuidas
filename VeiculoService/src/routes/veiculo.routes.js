@@ -12,6 +12,6 @@ router.get("/api/veiculo/:id", veiculoController.procurarVeiculo);
 
 router.delete("/api/veiculo/:id", veiculoController.deletaVeiculo);
 
-router.put("/api/veiculo/:id", veiculoController.updateVeicuclo);
+router.put("/api/veiculo/:id", veiculoController.updateVeiculo);
 
 export default router;

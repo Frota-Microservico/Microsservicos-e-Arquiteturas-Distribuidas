@@ -2,7 +2,7 @@ import { Kafka } from "kafkajs";
 
 const kafka = new Kafka({
   clientId: "reserva-service",
-  brokers: ["localhost:9092"], // endereço do Kafka
+  brokers: [process.env.KAFKA_BROKER], // endereço do Kafka
 });
 
 const producer = kafka.producer();

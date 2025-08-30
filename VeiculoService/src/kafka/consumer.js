@@ -1,9 +1,12 @@
 import { Kafka } from "kafkajs";
-import { VeiculoModel } from "../models/veiculo.model.js";
+import { VeiculoModel } from "../../models/veiculo.model.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const kafka = new Kafka({
   clientId: "veiculo-service",
-  brokers: ["kafka:9092"]
+  brokers: [process.env.KAFKA_BROKER]
 });
 
 const consumer = kafka.consumer({ groupId: "veiculo-group" });

@@ -22,15 +22,10 @@ const start = async () => {
     await connectProducer();
     await connectConsumer();
 
-    app.listen(3000, () => console.log("🚀 ReservaService rodando na porta 3000"));
+    app.listen(process.env.PORT || 3000, () => console.log(`🚀 ReservaService rodando na porta ${process.env.PORT || 3000}`));
   } catch (err) {
     console.error("Erro ao iniciar serviço:", err);
   }
 };
 
 start();
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Reserva Service ${PORT}`)
-})
