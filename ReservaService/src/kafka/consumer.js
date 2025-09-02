@@ -15,14 +15,14 @@ export const connectConsumer = async () => {
   console.log("✅ Consumer conectado ao Kafka");
 
   // Exemplo: ouvindo evento de pagamento confirmado
-  await consumer.subscribe({ topic: "pagamento_confirmado", fromBeginning: true });
+  await consumer.subscribe({ topic: "reservas_topic", fromBeginning: true });
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       const evento = JSON.parse(message.value.toString());
       console.log(`📥 Evento recebido no tópico "${topic}":`, evento);
 
-      if (topic === "pagamento_confirmado") {
+      if (topic === "reservas_topic") {
         // aqui você poderia atualizar a reserva no banco, por ex:
         // await ReservaModel.update({ status: "CONFIRMADA" }, { where: { id: evento.idReserva } });
       }

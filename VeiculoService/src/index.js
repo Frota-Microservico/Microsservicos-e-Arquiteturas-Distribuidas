@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import app from './app.js';
 import { sequelize } from "../database/config.js";
+import { connectProducer } from "./kafka/producer.js";
+import { connectConsumer } from "./kafka/consumer.js";
 
 dotenv.config();
 
@@ -15,7 +17,16 @@ dotenv.config();
     }
 })();
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Reserva Service ${PORT}`)
-})
+
+const start = async () => {
+  try {
+    await connectProducer();
+    await connectConsumer();
+
+    app.listen(process.env.PORT || 3000, () => console.log(`🚀 VeiculoService rodando na porta ${process.env.PORT || 3000}`));
+  } catch (err) {
+    console.error("Erro ao iniciar serviço:", err);
+  }
+};
+
+start();
