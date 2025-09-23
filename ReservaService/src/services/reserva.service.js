@@ -1,27 +1,44 @@
-import { where } from "sequelize";
 import { ReservaModel } from "../../models/reserva.model.js";
+import { VeiculoModel } from "../../models/veiculo.model.js";
+import { sendMessage } from "../kafka/producer.js";
 
 export class ReservaService {
 
     static async postReservaVeiculos(req, res) {
         const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
 
+        // Valida se o veículo está disponível para reserva
+        const veiculo = await VeiculoModel.findOne({
+            where: { id: idVeiculo, status: "DISPONIVEL" }
+        });
+
+        if (!veiculo) {
+            return res.status(400).json({
+                status: 400,
+                detail: "Veículo não disponível para reserva"
+            });
+        }
+
+        // Cria a reserva no banco de dados
         const reserva = await ReservaModel.create({
-            id_usuario: idUsuario,  
+            id_usuario: idUsuario,
             id_veiculo: idVeiculo,
             status: "ATIVA",
             dt_reserva,
             dt_devolucao
         });
 
-        await sendMessage("reserva_criada", {
-            idReserva: reserva.id,
-            idUsuario,
-            idVeiculo,
-            dt_reserva,
-            dt_devolucao,
-            status: "ATIVA"
-        });
+        // Envia para topico do Kafka de Veiculo, altera status "reservado" do veiculo e registra no historico
+        await sendMessage("reserva_criada",
+            {
+                idReserva: reserva.id,
+                idUsuario,
+                idVeiculo,
+                dt_reserva,
+                dt_devolucao,
+                status: "ATIVA"
+            }
+        );
 
         return res.status(201).json({
             status: 201,
@@ -71,7 +88,7 @@ export class ReservaService {
         await ReservaModel.update(
             {
                 dt_reserva: dt_reserva,
-                dt_devolucao: dt_devolucao 
+                dt_devolucao: dt_devolucao
             },
             { where: { id: id } }
         );

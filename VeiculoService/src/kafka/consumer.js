@@ -11,13 +11,13 @@ const kafka = new Kafka({
 
 const consumer = kafka.consumer({ groupId: "veiculo-group" });
 
+
 export const connectConsumer = async () => {
   await consumer.connect();
   console.log("📥 Kafka Consumer conectado - VeiculoService");
 
   // Consumindo eventos de reserva
-  await consumer.subscribe({ topic: "reserva_criada", fromBeginning: false });
-  await consumer.subscribe({ topic: "veiculo_devolvido", fromBeginning: false });
+  await consumer.subscribe({ topic: "reserva_criada", fromBeginning: true });
 
   await consumer.run({
     eachMessage: async ({ topic, message }) => {
@@ -32,13 +32,6 @@ export const connectConsumer = async () => {
         console.log(`✅ Veículo ${event.idVeiculo} atualizado para RESERVADO`);
       }
 
-      if (topic === "veiculo_devolvido") {
-        await VeiculoModel.update(
-          { status: "DISPONIVEL" },
-          { where: { id: event.idVeiculo } }
-        );
-        console.log(`✅ Veículo ${event.idVeiculo} atualizado para DISPONIVEL`);
-      }
     }
   });
 };
