@@ -8,13 +8,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala as dependências do projeto
+RUN npm install -g nodemon
 RUN npm install --production
 
 # Copia o restante do código da aplicação para dentro do container
 COPY . .
 
 # Exponha a porta que o microserviço irá rodar
-EXPOSE 3001
+EXPOSE 3002
 
 # Define a variável de ambiente para produção (opcional)
 ENV NODE_ENV=production

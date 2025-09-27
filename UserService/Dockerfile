@@ -15,7 +15,7 @@ RUN npm install --production
 COPY . .
 
 # Exponha a porta que o microserviço irá rodar
-EXPOSE 3001
+EXPOSE 3003
 
 # Define a variável de ambiente para produção (opcional)
 ENV NODE_ENV=production

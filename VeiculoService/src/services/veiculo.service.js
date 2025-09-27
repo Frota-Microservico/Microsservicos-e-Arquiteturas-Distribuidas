@@ -27,12 +27,11 @@ export class VeiculoService {
             status: "DISPONIVEL"
         });
 
-        return res.status(201).json({ status: 201, veiculo });
+        return res.status(201).json(veiculo);
     }
 
-    static async getListarVeiculos(req, res) {
-        const veiculos = await VeiculoModel.findAll();
-        return res.status(200).json(veiculos);
+    static async getListarVeiculos() {
+        return await VeiculoModel.findAll();
     }
 
     static async getProcuraVeiculo(req, res) {
@@ -54,6 +53,18 @@ export class VeiculoService {
 
         if (!veiculo) {
             return res.status(404).json({ status: 404, detail: "Veículo não encontrado" });
+        }
+
+        
+        // Formatar placa
+        const placaFormatada = placa ? placa.replace(/[-\s]/g, '').toUpperCase() : veiculo.placa;
+
+        // Verificar duplicidade de placa em outro veículo
+        const placaExistente = await VeiculoModel.findOne({
+            where: { placa: placaFormatada, id: { $ne: id } } // Sequelize: id diferente
+        });
+        if (placaExistente) {
+            return res.status(409).json({ status: 409, detail: "Já existe um veículo com esta placa" });
         }
 
         await veiculo.update({

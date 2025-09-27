@@ -1,7 +1,10 @@
 "use client";
 import Navbar from "../components/navbar";
+import { useAuth, logout } from "../utils/auth";
 
 export default function HomePage() {
+  const { user, loading } = useAuth(true);
+
   const handleGrafana = () => {
     // Substitua pelo link do seu Grafana
     window.open("https://grafana.com/", "_blank");

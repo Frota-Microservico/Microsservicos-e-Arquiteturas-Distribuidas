@@ -23,7 +23,7 @@ const start = async () => {
     await connectProducer();
     await connectConsumer();
 
-    app.listen(process.env.PORT || 3000, () => console.log(`🚀 VeiculoService rodando na porta ${process.env.PORT || 3000}`));
+    app.listen(process.env.PORT || 3002, () => console.log(`🚀 VeiculoService rodando na porta ${process.env.PORT || 3000}`));
   } catch (err) {
     console.error("Erro ao iniciar serviço:", err);
   }

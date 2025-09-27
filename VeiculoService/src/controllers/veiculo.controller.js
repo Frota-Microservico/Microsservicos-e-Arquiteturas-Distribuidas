@@ -14,13 +14,11 @@ export class VeiculoController {
 
     async listarVeiculos(req, res) {
         try {
-
             const veiculos = await VeiculoService.getListarVeiculos();
             return res.status(200).json(veiculos);
         } catch (error) {
             console.log(error);
-            return res.status(500)
-                .json({ status: 500, detail: "Erro ao listar veiculos" });
+            return res.status(500).json({ status: 500, detail: "Erro ao listar veiculos" });
         }
     }
 
@@ -78,7 +76,7 @@ export class VeiculoController {
                 return res.status(400).json({ status: 400, detail: "Dados inválidos" });
             }
 
-            const verificaUpdate = await ReservaService.updateVeiculo(id, status);
+            const verificaUpdate = await VeiculoService.updateVeiculo(req, res);
 
             if (!verificaUpdate) {
                 return res.status(404).json({ status: 404, detail: "Veiculo não encontrada" });

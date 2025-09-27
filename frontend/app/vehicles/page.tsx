@@ -1,18 +1,44 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
+import { useAuth, logout } from "../utils/auth";
 
 export default function VehiclesPage() {
+  interface Vehicle {
+    id: number;
+    placa: string;
+    modelo: string;
+    ano: number;
+    status: string;
+  }
+
+  const { user, loading } = useAuth(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
-  const vehicles = [
-    { id: 1, placa: "ABC-1234", modelo: "Fiat Uno", ano: 2019, status: "Disponível" },
-    { id: 2, placa: "XYZ-9876", modelo: "Ford Ka", ano: 2021, status: "Reservado" },
-  ];
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:3002/api/veiculo", {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Erro ao buscar veículos");
+        const data: Vehicle[] = await res.json();
+        setVehicles(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
+    fetchVehicles();
+  }, []);
   return (
     <>
       <Navbar />
@@ -80,10 +106,38 @@ export default function VehiclesPage() {
           <div className="fixed inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
               <h2 className="text-xl font-bold text-blue-700 mb-4">Novo Veículo</h2>
-              <form className="space-y-4">
+              <form className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget as HTMLFormElement);
+                  const placa = formData.get("placa") as string;
+                  const modelo = formData.get("modelo") as string;
+                  const ano = Number(formData.get("ano"));
+                  const status = formData.get("status") as string;
+
+                  try {
+                    const token = localStorage.getItem("token");
+                    const res = await fetch("http://localhost:3002/api/veiculos", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ placa, modelo, ano, status }),
+                    });
+                    if (!res.ok) throw new Error("Erro ao criar veículo");
+                    const newVehicle: Vehicle = await res.json();
+                    setVehicles([...vehicles, newVehicle]);
+                    setIsCreateOpen(false);
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+              >
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Placa</label>
                   <input
+                    name="placa"
                     type="text"
                     placeholder="Digite a placa"
                     className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -92,6 +146,7 @@ export default function VehiclesPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Modelo</label>
                   <input
+                    name="modelo"
                     type="text"
                     placeholder="Digite o modelo"
                     className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -100,6 +155,7 @@ export default function VehiclesPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Ano</label>
                   <input
+                    name="ano"
                     type="number"
                     placeholder="Digite o ano"
                     className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -107,11 +163,8 @@ export default function VehiclesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <select className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>Disponível</option>
-                    <option>Reservado</option>
-                    <option>Em Uso</option>
-                    <option>Indisponível</option>
+                  <select name="status" className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option selected>Disponível</option>
                   </select>
                 </div>
                 <div className="flex justify-end space-x-2">
@@ -139,10 +192,55 @@ export default function VehiclesPage() {
           <div className="fixed inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
               <h2 className="text-xl font-bold text-green-700 mb-4">Editar Veículo</h2>
-              <form className="space-y-4">
+              <form 
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!selectedVehicle) return;
+
+                  const formData = new FormData(e.currentTarget as HTMLFormElement);
+                  const placa = formData.get("placa") as string;
+                  const modelo = formData.get("modelo") as string;
+                  const ano = Number(formData.get("ano"));
+                  const status = (formData.get("status") === "on") ? "INDISPONIVEL" : "DISPONIVEL";
+
+                  try {
+                    // Verificar duplicidade de placa
+                    const placaExistente = vehicles.find(
+                      v => v.placa.toUpperCase() === placa.toUpperCase() && v.id !== selectedVehicle.id
+                    );
+
+                    if (placaExistente) {
+                      alert("Já existe um veículo com esta placa!");
+                      return; // Não prosseguir com o update
+                    }
+
+                    const token = localStorage.getItem("token");
+                    const res = await fetch(`http://localhost:3002/api/veiculo/${selectedVehicle.id}`, {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ placa, modelo, ano, status }),
+                    });
+
+                    if (!res.ok) throw new Error("Erro ao atualizar veículo");
+
+                    const data = await res.json();
+                    // Atualizar a lista de veículos
+                    setVehicles(vehicles.map(v => v.id === selectedVehicle.id ? data.veiculo : v));
+
+                    setIsEditOpen(false);
+                    } catch (err) {
+                      console.error(err);
+                    }
+                }}
+                >
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Placa</label>
                   <input
+                    name="placa"
                     type="text"
                     defaultValue={selectedVehicle.placa}
                     className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -151,6 +249,7 @@ export default function VehiclesPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Modelo</label>
                   <input
+                    name="modelo" 
                     type="text"
                     defaultValue={selectedVehicle.modelo}
                     className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -159,6 +258,7 @@ export default function VehiclesPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Ano</label>
                   <input
+                    name="ano"  
                     type="number"
                     defaultValue={selectedVehicle.ano}
                     className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -168,6 +268,7 @@ export default function VehiclesPage() {
                 {/* Checkbox para tornar veículo indisponível */}
                 <div className="flex items-center space-x-2">
                   <input
+                    name="status"
                     type="checkbox"
                     id="indisponivel"
                     className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
@@ -221,8 +322,22 @@ export default function VehiclesPage() {
                   Cancelar
                 </button>
                 <button
-                  onClick={() => {
-                    // lógica de deleção aqui
+                    onClick={async () => {
+                      if (!selectedVehicle) return;
+                      try {
+                        const token = localStorage.getItem("token");
+                        const res = await fetch(`http://localhost:3003/api/veiculo/${selectedVehicle.id}`, {
+                          method: "DELETE",
+                          headers: {
+                            "Authorization": `Bearer ${token}`,
+                          },
+                        });
+                        if (!res.ok) throw new Error("Erro ao deletar veículo");
+                        setVehicles(vehicles.filter(v => v.id !== selectedVehicle.id));
+                        setIsDeleteOpen(false);
+                      } catch (err) {
+                        console.error(err);
+                      }
                     setIsDeleteOpen(false);
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"

@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
+import { useAuth, logout } from "../utils/auth";
 import Navbar from "../components/navbar";
 
 export default function AllReservationsPage() {
-  // Simulando usuário admin
-  const isAdmin = true;
-
+  const { user, loading } = useAuth(true);
+  
   // Simulação de reservas de todos os usuários
   const [reservations, setReservations] = useState([
     {
@@ -38,19 +38,6 @@ export default function AllReservationsPage() {
     setReservations((prev) => prev.filter((res) => res.id !== id));
     setIsCancelOpen(false);
   };
-
-  if (!isAdmin) {
-    return (
-      <>
-        <Navbar />
-        <main className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-100 to-blue-300 p-8">
-          <h1 className="text-2xl font-bold text-red-600">
-            Acesso negado: página apenas para administradores
-          </h1>
-        </main>
-      </>
-    );
-  }
 
   return (
     <>

@@ -88,20 +88,21 @@ services:
     container_name: reserva-service
     restart: always
     environment:
-      PORT: 3000
+      PORT: 3001
       DB_HOST: dcs-postgres
       DB_PORT: 5432
       DB_USER: gerenciador_frota_user
       DB_PASSWORD: root
       DB_NAME: gerenciador_frota
       KAFKA_BROKER: kafka:9092
+      JWT_SECRET: m1p4ssw0rd
     depends_on:
       dcs-postgres:
         condition: service_healthy
       kafka:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "3001:3001"
     networks:
       - fleet-network
 
@@ -111,20 +112,93 @@ services:
     container_name: veiculo-service
     restart: always
     environment:
-      PORT: 3001
+      PORT: 3002
       DB_HOST: dcs-postgres
       DB_PORT: 5432
       DB_USER: gerenciador_frota_user
       DB_PASSWORD: root
       DB_NAME: gerenciador_frota
       KAFKA_BROKER: kafka:9092
+      JWT_SECRET: m1p4ssw0rd
     depends_on:
       dcs-postgres:
         condition: service_healthy
       kafka:
         condition: service_healthy
     ports:
-      - "3001:3001"
+      - "3002:3002"
+    networks:
+      - fleet-network
+
+  user-service:
+    build:
+      context: ./UserService
+    container_name: user-service
+    restart: always
+    environment:
+      PORT: 3003
+      DB_HOST: dcs-postgres
+      DB_PORT: 5432
+      DB_USER: gerenciador_frota_user
+      DB_PASSWORD: root
+      DB_NAME: gerenciador_frota
+      KAFKA_BROKER: kafka:9092
+      JWT_SECRET: m1p4ssw0rd
+    depends_on:
+      dcs-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "3003:3003"
+    networks:
+      - fleet-network
+
+  historico-service:
+    build:
+      context: ./HistoricoService
+    container_name: historico-service
+    restart: always
+    environment:
+      PORT: 3004
+      DB_HOST: dcs-postgres
+      DB_PORT: 5432
+      DB_USER: gerenciador_frota_user
+      DB_PASSWORD: root
+      DB_NAME: gerenciador_frota
+      KAFKA_BROKER: kafka:9092
+      JWT_SECRET: m1p4ssw0rd
+    depends_on:
+      dcs-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "3004:3004"
+    networks:
+      - fleet-network
+
+  notificacao-service:
+    build:
+      context: ./NotificacaoService
+    container_name: notificacao-service
+    restart: always
+    environment:
+      PORT: 3005
+      DB_HOST: dcs-postgres
+      DB_PORT: 5432
+      DB_USER: gerenciador_frota_user
+      DB_PASSWORD: root
+      DB_NAME: gerenciador_frota
+      KAFKA_BROKER: kafka:9092
+      JWT_SECRET: m1p4ssw0rd
+    depends_on:
+      dcs-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "3005:3005"
     networks:
       - fleet-network
 
