@@ -163,9 +163,13 @@ export default function VehiclesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <select name="status" className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option selected>Disponível</option>
-                  </select>
+                  <input
+                    type="text"
+                    name="status"
+                    value="Disponível"
+                    readOnly
+                    className="w-full mt-1 px-3 py-2 border rounded-lg shadow-sm bg-gray-100 text-gray-700"
+                  />
                 </div>
                 <div className="flex justify-end space-x-2">
                   <button
@@ -326,13 +330,16 @@ export default function VehiclesPage() {
                       if (!selectedVehicle) return;
                       try {
                         const token = localStorage.getItem("token");
-                        const res = await fetch(`http://localhost:3003/api/veiculo/${selectedVehicle.id}`, {
+                        const res = await fetch(`http://localhost:3002/api/veiculo/${selectedVehicle.id}`, {
                           method: "DELETE",
                           headers: {
                             "Authorization": `Bearer ${token}`,
                           },
                         });
-                        if (!res.ok) throw new Error("Erro ao deletar veículo");
+                      if (!res.ok) {
+                        const error = await res.json();
+                        throw new Error(error.detail || "Erro ao deletar veículo");
+                      } 
                         setVehicles(vehicles.filter(v => v.id !== selectedVehicle.id));
                         setIsDeleteOpen(false);
                       } catch (err) {

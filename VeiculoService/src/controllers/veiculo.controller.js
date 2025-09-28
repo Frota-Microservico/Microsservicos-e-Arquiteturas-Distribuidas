@@ -46,7 +46,7 @@ export class VeiculoController {
                 return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
 
-            const verificaDelete = await VeiculoService.deleteVeiculo(id);
+            const verificaDelete = await VeiculoService.deletaVeiculo(id);
             
             if (!verificaDelete) {
                 return res.status(400).json({ status: 400, detail: "Não foi encontrado o veiculo" });
@@ -66,30 +66,25 @@ export class VeiculoController {
     async updateVeiculo(req, res) {
         try {
             const id = parseInt(req.params.id, 10);
-            const { status } = req.body;
-            
             if (isNaN(id)) {
-                return res.status(400).json({ status: 400, detail: "ID inválido" });
+            return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
 
-            if (!status) {
-                return res.status(400).json({ status: 400, detail: "Dados inválidos" });
+            const veiculo = await VeiculoService.updateVeiculo(id, req.body);
+
+            if (!veiculo) {
+            return res.status(404).json({ status: 404, detail: "Veículo não encontrado" });
             }
 
-            const verificaUpdate = await VeiculoService.updateVeiculo(req, res);
-
-            if (!verificaUpdate) {
-                return res.status(404).json({ status: 404, detail: "Veiculo não encontrada" });
+            if (veiculo === "placa_duplicada") {
+            return res.status(409).json({ status: 409, detail: "Já existe um veículo com esta placa" });
             }
 
-            return res.status(200).json({
-                status: 200,
-                detail: "Veiculo atualizado com sucesso"
-            });
+            return res.status(200).json({ status: 200, detail: "Veículo atualizado com sucesso", veiculo });
         } catch (error) {
             console.log(error);
-            return res.status(500)
-                .json({ status: 500, detail: "Erro ao atualizar o veiculo" });
+            return res.status(500).json({ status: 500, detail: "Erro ao atualizar o veículo" });
         }
     }
+
 }

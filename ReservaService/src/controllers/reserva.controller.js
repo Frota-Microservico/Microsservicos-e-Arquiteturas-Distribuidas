@@ -14,24 +14,25 @@ export class ReservaController {
     }
 
     async reservar(req, res) {
-        try {
-            const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
+        console.log("REQ.BODY", req.body);
+    try {
 
-            if (!idUsuario || !idVeiculo || !dt_reserva || !dt_devolucao) {
-                return res.status(400).json({ status: 400, detail: "Dados inválidos" });
-            }
+        const reserva = await ReservaService.postReservaVeiculos(req.body);
 
-            return await ReservaService.postReservaVeiculos(req, res)
-        } catch (error) {
-            console.log(error);
-            return res.status(500)
-                .json({ status: 500, detail: "Erro interno do servidor" });
-        }
+        return res.status(201).json({
+        status: 201,
+        detail: "Reserva criada com sucesso",
+        data: reserva
+        });
+    } catch (error) {
+        console.error("ERRO RESERVAR:", error);
+        return res.status(400).json({ status: 400, detail: error.message });
     }
+    }
+
 
     async listarReserva(req, res) {
         try {
-
             const reservados = await ReservaService.getListarReservas();
             res.status(200).json(reservados);
         } catch (error) {

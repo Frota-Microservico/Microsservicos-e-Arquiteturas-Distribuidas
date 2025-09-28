@@ -28,24 +28,17 @@ export class ReservaService {
             dt_devolucao
         });
 
-        // Envia para topico do Kafka de Veiculo, altera status "reservado" do veiculo e registra no historico
-        await sendMessage("reserva_criada",
-            {
-                idReserva: reserva.id,
-                idUsuario,
-                idVeiculo,
-                dt_reserva,
-                dt_devolucao,
-                status: "ATIVA"
-            }
-        );
+    await sendMessage("reserva_criada", {
+      idReserva: reserva.id,
+      idUsuario,
+      idVeiculo,
+      dt_reserva,
+      dt_devolucao,
+      status: "ATIVA",
+    });
 
-        return res.status(201).json({
-            status: 201,
-            detail: "Reserva criada com sucesso",
-            data: reserva
-        });
-    }
+    return reserva;
+  }
 
     static async getListarReservas(req, res) {
 

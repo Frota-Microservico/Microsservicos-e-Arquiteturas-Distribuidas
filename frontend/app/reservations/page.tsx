@@ -1,40 +1,78 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
+import { useAuth } from "../utils/auth";
 
 export default function ReservationsPage() {
+  const [vehicles, setVehicles] = useState<{ id: number; placa: string; modelo: string }[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const { user, loading } = useAuth(true); // pega o usuário logado
+  const userId = user?.id; // pega o id real do usuário logado
 
-  // Simulação de lista de veículos disponíveis
-  const vehicles = [
-    { id: 1, placa: "ABC-1234", modelo: "Fiat Uno" },
-    { id: 2, placa: "XYZ-9876", modelo: "Ford Ka" },
-    { id: 3, placa: "DEF-5678", modelo: "Chevrolet Onix" },
-  ];
+  // Buscar veículos disponíveis do backend
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const res = await fetch("http://localhost:3002/api/veiculo");
+        if (!res.ok) throw new Error("Erro ao buscar veículos");
+        const data = await res.json();
+        setVehicles(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchVehicles();
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui entraria a lógica de criar reserva
-    alert(
-      `Reserva criada:\nVeículo: ${selectedVehicle}\nData Início: ${startDate}\nData Fim: ${endDate}`
+
+    const vehicle = vehicles.find(
+      (v) => `${v.modelo} (${v.placa})` === selectedVehicle
     );
-    setSelectedVehicle("");
-    setStartDate("");
-    setEndDate("");
+
+    if (!vehicle) {
+      alert("Veículo inválido!");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3001/api/reservas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idUsuario: userId,
+          idVeiculo: vehicle.id,
+          dt_reserva: startDate,
+          dt_devolucao: endDate,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Erro ao criar reserva");
+      }
+
+      alert("Reserva criada com sucesso!");
+      setSelectedVehicle("");
+      setStartDate("");
+      setEndDate("");
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-gradient-to-r from-blue-100 to-blue-300 p-8 pt-6">
-        {/* Cabeçalho */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-blue-700">Criar Reserva</h1>
         </div>
 
-        {/* Formulário */}
         <div className="bg-white p-6 rounded-xl shadow-md max-w-md mx-auto">
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>

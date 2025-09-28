@@ -4,8 +4,6 @@ import { ReservaController } from "../controllers/reserva.controller.js";
 const reservaController = new ReservaController();
 const router = Router();
 
-router.get("/api/hello-world", reservaController.helloWorld);
-
 router.post("/api/reservas", reservaController.reservar); // Cadastrar uma reserva de veiculo
 
 router.get("/api/reservas", reservaController.listarReserva);

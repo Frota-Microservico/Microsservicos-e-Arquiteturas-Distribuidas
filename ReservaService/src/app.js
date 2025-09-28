@@ -10,6 +10,12 @@ app.use(cors({
   credentials: true
 }));
 
+app.use((req, res, next) => {
+  console.log("REQ RECEBIDA:", req.method, req.url);
+  console.log("BODY:", req.body);
+  next();
+});
+
 app.use(express.json());
 
 app.use(reservaRoutes);
