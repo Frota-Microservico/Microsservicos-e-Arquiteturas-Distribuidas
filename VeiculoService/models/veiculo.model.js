@@ -20,7 +20,7 @@ export const VeiculoModel = sequelize.define("veiculo", {
         allowNull: false
     },
     status: {
-        type: DataTypes.ENUM("DISPONIVEL", "RESERVADO"),
+        type: DataTypes.ENUM("DISPONIVEL", "RESERVADO", "INDISPONIVEL", "EM USO"),
         allowNull: false
     }
 });

@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../database/config.js";
-import bcrypt from "bcrypt";
 
 export const UserModel = sequelize.define("user", {
   id: {
@@ -22,7 +21,7 @@ export const UserModel = sequelize.define("user", {
   },
   pass: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   isadmin: {
     type: DataTypes.BOOLEAN,

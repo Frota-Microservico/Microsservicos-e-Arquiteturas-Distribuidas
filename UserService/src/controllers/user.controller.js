@@ -6,12 +6,12 @@ export class UserController {
   async register(req, res) {
     try {
       const user = await userService.register(req.body);
-      res.status(201).json(user);
+      return res.status(201).json(user);
     } catch (err) {
       if (err.name === 'SequelizeValidationError') {
         return res.status(400).json({ error: err.errors.map(e => e.message) });
       }
-      res.status(400).json({ error: err.message });
+      return res.status(400).json({ error: err.message });
     }
   }
 

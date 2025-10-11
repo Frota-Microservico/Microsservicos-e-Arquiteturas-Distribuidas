@@ -9,6 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export class UserService {
   async register({ name, email, pass, isadmin = false }) {
     const existingUser = await UserModel.findOne({ where: { email } });
+    
     if (existingUser) throw new Error("Email já registrado");
     const hashedPass = await bcrypt.hash(pass, 10);
 

@@ -17,7 +17,7 @@ export class ReservaController {
         console.log("REQ.BODY", req.body);
     try {
 
-        const reserva = await ReservaService.postReservaVeiculos(req.body);
+        const reserva = await ReservaService.postReservaVeiculos(req, res);
 
         return res.status(201).json({
         status: 201,

@@ -7,6 +7,7 @@ const router = Router();
 
 // Registro e login
 router.post("/api/users/create", userController.register);
+
 router.post("/api/login", userController.login);
 
 // Listagem de usuários – só admins
