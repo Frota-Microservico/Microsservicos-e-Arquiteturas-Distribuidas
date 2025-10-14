@@ -3,16 +3,6 @@ import { ReservaService } from "../services/reserva.service.js";
 
 export class ReservaController {
 
-    async helloWorld(req, res) {
-        try {
-            return res.status(200).json({ status: 200, data: "Hello, World!" });
-        } catch (error) {
-            console.log(error);
-            return res.status(500)
-                .json({ status: 500, detail: "Erro interno do servidor" });
-        }
-    }
-
     async reservar(req, res) {
         try {
             console.log("ateste", req.body);

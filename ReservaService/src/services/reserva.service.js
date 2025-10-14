@@ -3,7 +3,6 @@ import { VeiculoModel } from "../../models/veiculo.model.js";
 import { sendMessage } from "../kafka/producer.js";
 import { Op } from "sequelize";
 
-
 export class ReservaService {
 
     static async postReservaVeiculos(req, res) {
@@ -11,11 +10,12 @@ export class ReservaService {
 
         console.log(req.body);
 
-        // Verifica se o veículo existe
-        const veiculo = await VeiculoModel.findOne({
-            where: { id: idVeiculo }
-        });
+        if (!idUsuario || !idVeiculo || !dt_reserva || !dt_devolucao) {
+            return res.status(400).json({ status: 400, detail: "Dados inválidos" });
+        }
 
+        // Verifica se o veículo existe
+        const veiculo = await VeiculoModel.findByPk(idVeiculo);
         if (!veiculo) {
             return res.status(400).json({
                 status: 400,
@@ -29,16 +29,8 @@ export class ReservaService {
                 id_veiculo: idVeiculo,
                 status: "ATIVA",
                 [Op.or]: [
-                    {
-                        dt_reserva: {
-                            [Op.between]: [dt_reserva, dt_devolucao]
-                        }
-                    },
-                    {
-                        dt_devolucao: {
-                            [Op.between]: [dt_reserva, dt_devolucao]
-                        }
-                    },
+                    { dt_reserva: { [Op.between]: [dt_reserva, dt_devolucao] } },
+                    { dt_devolucao: { [Op.between]: [dt_reserva, dt_devolucao] } },
                     {
                         [Op.and]: [
                             { dt_reserva: { [Op.lte]: dt_reserva } },
@@ -56,15 +48,15 @@ export class ReservaService {
             });
         }
 
-        // Cria a reserva no banco de dados
         const reserva = await ReservaModel.create({
             id_usuario: idUsuario,
             id_veiculo: idVeiculo,
             status: "ATIVA",
             dt_reserva,
             dt_devolucao
-        });
+        }, { usuario: idUsuario });
 
+        // Envia o evento Kafka para o serviço de veículo
         await sendMessage("reserva_criada", {
             idReserva: reserva.id,
             idUsuario,
@@ -73,14 +65,12 @@ export class ReservaService {
             dt_devolucao,
             status: "ATIVA",
         });
-
-        return reserva;
+        return res.status(201).json(reserva);
     }
 
     static async getListarReservas(req, res) {
-
-        const reservasAtivas = await ReservaModel.findAll({});
-        return reservasAtivas;
+        const reservas = await ReservaModel.findAll({});
+        return res.status(200).json(reservas);
     }
 
     static async getProcuraReservas(req, res) {
@@ -91,39 +81,45 @@ export class ReservaService {
         }
 
         try {
-            const reservaPorId = await ReservaModel.findByPk(id);
-            return reservaPorId;
+            const reserva = await ReservaModel.findByPk(id);
+            if (!reserva) {
+                return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
+            }
+            return res.status(200).json(reserva);
         } catch (error) {
-            console.log("Erro ao encontrar a reserva");
-            return null;
+            console.error("Erro ao buscar reserva:", error);
+            return res.status(500).json({ status: 500, detail: "Erro interno no servidor" });
         }
     }
 
-    static async deleteReserva(id) {
-        const verificaReserva = await ReservaModel.findByPk(id);
+    static async deleteReserva(req, res) {
+        const id = parseInt(req.params.id, 10);
+        const { idUsuario } = req.body;
 
-        if (!verificaReserva) {
-            return res.status(400).json({ status: 400, detail: "Não foi encontrado a reserva" });
+        const reserva = await ReservaModel.findByPk(id);
+        if (!reserva) {
+            return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
         }
 
-        await ReservaModel.destroy({
-            where: { id: id }
-        });
+        await reserva.destroy({ usuario: idUsuario });
 
-        return true;
+        return res.status(200).json({ status: 200, message: "Reserva excluída com sucesso" });
     }
 
-    static async putReserva(id, dt_reserva, dt_devolucao) {
+    static async putReserva(req, res) {
+        const id = parseInt(req.params.id, 10);
+        const { dt_reserva, dt_devolucao, idUsuario } = req.body;
 
-        await ReservaModel.update(
-            {
-                dt_reserva: dt_reserva,
-                dt_devolucao: dt_devolucao
-            },
-            { where: { id: id } }
+        const reserva = await ReservaModel.findByPk(id);
+        if (!reserva) {
+            return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
+        }
+
+        await reserva.update(
+            { dt_reserva, dt_devolucao },
+            { usuario: idUsuario }
         );
 
-        return await ReservaModel.findByPk(id);
+        return res.status(200).json(await ReservaModel.findByPk(id));
     }
-
 }

@@ -27,7 +27,10 @@ export const connectConsumer = async () => {
       if (topic === "reserva_criada") {
         await VeiculoModel.update(
           { status: "RESERVADO" },
-          { where: { id: event.idVeiculo } }
+          {
+            where: { id: event.idVeiculo },
+            usuario: event.idUsuario || null,
+          }
         );
         console.log(`✅ Veículo ${event.idVeiculo} atualizado para RESERVADO`);
       }
