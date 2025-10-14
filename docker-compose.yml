@@ -202,6 +202,30 @@ services:
     networks:
       - fleet-network
 
+  devolucao-service:
+    build:
+      context: ./DevolucaoService
+    container_name: devolucao-service
+    restart: always
+    environment:
+      PORT: 3006
+      DB_HOST: dcs-postgres
+      DB_PORT: 5432
+      DB_USER: gerenciador_frota_user
+      DB_PASSWORD: root
+      DB_NAME: gerenciador_frota
+      KAFKA_BROKER: kafka:9092
+      JWT_SECRET: m1p4ssw0rd
+    depends_on:
+      dcs-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "3006:3006"
+    networks:
+      - fleet-network
+
 networks:
   fleet-network:
     driver: bridge

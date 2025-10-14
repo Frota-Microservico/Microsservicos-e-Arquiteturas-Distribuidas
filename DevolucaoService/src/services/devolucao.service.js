@@ -1,32 +1,28 @@
 import { VeiculoModel } from "../../models/veiculo.model.js";
-import { sendDevolucaoEvent } from "../kafka/producer.js";
 import { connectConsumer } from "../kafka/consumer.js";
 
 export class DevolucaoService {
 
     static async putDevolucao(req, res) {
-        const { idveiculo } = req.body;
+        const { idVeiculo } = req.body;
 
-        if (!idveiculo) {
+        if (!idVeiculo) {
             return res.status(400).json({ status: 400, detail: "Dados inválidos" });
         }
 
-        const veiculo = await VeiculoModel.findByPk(idveiculo);
+        const veiculo = await VeiculoModel.findByPk(idVeiculo);
 
         if (!veiculo) {
             return res.status(404).json({ status: 404, detail: "Veículo não encontrado" });
         }
 
-        await sendDevolucaoEvent("devolucao_topic", {
-            idveiculo,
-            novoStatus: "Disponível",
-            timestamp: new Date()
-        });
+        veiculo.status = "DISPONIVEL";
+        await veiculo.save({ usuario: req.user?.id });
 
         return res.status(202).json({
             status: 202,
             message: "Evento de devolução enviado para processamento",
-            veiculoId: idveiculo
+            veiculoId: idVeiculo
         });
     }
 

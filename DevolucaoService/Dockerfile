@@ -1,5 +1,8 @@
 # Use a imagem oficial do Node.js como base
-FROM node:20-alpine
+FROM node:20-alpine3.19
+
+# Atualize os pacotes do sistema para corrigir vulnerabilidades
+RUN apk update && apk upgrade --no-cache
 
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
@@ -8,13 +11,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala as dependências do projeto
+RUN npm install -g nodemon
 RUN npm install --production
 
 # Copia o restante do código da aplicação para dentro do container
 COPY . .
 
 # Exponha a porta que o microserviço irá rodar
-EXPOSE 3001
+EXPOSE 3006
 
 # Define a variável de ambiente para produção (opcional)
 ENV NODE_ENV=production

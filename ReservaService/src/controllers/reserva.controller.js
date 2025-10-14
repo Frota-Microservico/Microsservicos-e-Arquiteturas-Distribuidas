@@ -14,20 +14,19 @@ export class ReservaController {
     }
 
     async reservar(req, res) {
-        console.log("REQ.BODY", req.body);
-    try {
+        try {
+            console.log("ateste", req.body);
+            const reserva = await ReservaService.postReservaVeiculos(req, res);
 
-        const reserva = await ReservaService.postReservaVeiculos(req, res);
-
-        return res.status(201).json({
-        status: 201,
-        detail: "Reserva criada com sucesso",
-        data: reserva
-        });
-    } catch (error) {
-        console.error("ERRO RESERVAR:", error);
-        return res.status(400).json({ status: 400, detail: error.message });
-    }
+            return res.status(201).json({
+                status: 201,
+                detail: "Reserva criada com sucesso",
+                data: reserva
+            });
+        } catch (error) {
+            console.error("ERRO RESERVAR:", error);
+            return res.status(400).json({ status: 400, detail: error.message });
+        }
     }
 
 

@@ -1,21 +1,58 @@
 import { ReservaModel } from "../../models/reserva.model.js";
 import { VeiculoModel } from "../../models/veiculo.model.js";
 import { sendMessage } from "../kafka/producer.js";
+import { Op } from "sequelize";
+
 
 export class ReservaService {
 
     static async postReservaVeiculos(req, res) {
         const { idUsuario, idVeiculo, dt_reserva, dt_devolucao } = req.body;
 
-        // Valida se o veículo está disponível para reserva
+        console.log(req.body);
+
+        // Verifica se o veículo existe
         const veiculo = await VeiculoModel.findOne({
-            where: { id: idVeiculo, status: "DISPONIVEL" }
+            where: { id: idVeiculo }
         });
 
         if (!veiculo) {
             return res.status(400).json({
                 status: 400,
-                detail: "Veículo não disponível para reserva"
+                detail: "Veículo não encontrado"
+            });
+        }
+
+        // Verifica se o veículo está disponível no período solicitado
+        const reservasConflitantes = await ReservaModel.findOne({
+            where: {
+                id_veiculo: idVeiculo,
+                status: "ATIVA",
+                [Op.or]: [
+                    {
+                        dt_reserva: {
+                            [Op.between]: [dt_reserva, dt_devolucao]
+                        }
+                    },
+                    {
+                        dt_devolucao: {
+                            [Op.between]: [dt_reserva, dt_devolucao]
+                        }
+                    },
+                    {
+                        [Op.and]: [
+                            { dt_reserva: { [Op.lte]: dt_reserva } },
+                            { dt_devolucao: { [Op.gte]: dt_devolucao } }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        if (reservasConflitantes) {
+            return res.status(400).json({
+                status: 400,
+                detail: "Veículo já reservado neste período"
             });
         }
 
@@ -28,17 +65,17 @@ export class ReservaService {
             dt_devolucao
         });
 
-    await sendMessage("reserva_criada", {
-      idReserva: reserva.id,
-      idUsuario,
-      idVeiculo,
-      dt_reserva,
-      dt_devolucao,
-      status: "ATIVA",
-    });
+        await sendMessage("reserva_criada", {
+            idReserva: reserva.id,
+            idUsuario,
+            idVeiculo,
+            dt_reserva,
+            dt_devolucao,
+            status: "ATIVA",
+        });
 
-    return reserva;
-  }
+        return reserva;
+    }
 
     static async getListarReservas(req, res) {
 
