@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { NotificacaoController } from "../controllers/notificacao.controller.js";
 
-const notificacaoController = new NotificacaoController();
 const router = Router();
+const notificacaoController = new NotificacaoController();
 
-router.get("/api/notificao", notificacaoController.notificarUsuario);
+router.post("/api/notificacao", (req, res) =>
+  notificacaoController.notificarUsuario(req, res)
+);
 
 export default router;
