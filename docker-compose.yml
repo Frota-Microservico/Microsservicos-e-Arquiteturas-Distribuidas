@@ -192,6 +192,10 @@ services:
       DB_NAME: gerenciador_frota
       KAFKA_BROKER: kafka:9092
       JWT_SECRET: m1p4ssw0rd
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      EMAIL_USER: frotamicroservico@gmail.com
+      EMAIL_PASS: rrfnxscfdlzvpwys
     depends_on:
       dcs-postgres:
         condition: service_healthy

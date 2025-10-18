@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { ReservaController } from "../controllers/reserva.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const reservaController = new ReservaController();
 const router = Router();
