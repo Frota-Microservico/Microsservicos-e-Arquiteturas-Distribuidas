@@ -3,6 +3,8 @@ import nodemailer from "nodemailer";
 export class NotificacaoService {
   static async enviarEmail({ to, subject, message }) {
     try {
+      console.log("Passou aqui", process.env.SMTP_HOST);
+      
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: process.env.SMTP_PORT || 587,
