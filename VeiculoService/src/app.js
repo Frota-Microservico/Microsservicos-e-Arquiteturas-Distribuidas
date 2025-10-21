@@ -12,6 +12,9 @@ app.use(cors({
 
 app.use(express.json());
 
+const SERVICE_NAME = 'veiculo-service';
+app.use(metricsMiddleware(SERVICE_NAME));
+
 app.use(veiculoRoutes);
 
 export default app;

@@ -1,0 +1,90 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'gerenciador-frota'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - 'alert.rules.yml'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'reserva-service'
+    static_configs:
+      - targets: ['reserva-service:3001']
+        labels:
+          service: 'reserva'
+          type: 'nodejs'
+
+  - job_name: 'veiculo-service'
+    static_configs:
+      - targets: ['veiculo-service:3002']
+        labels:
+          service: 'veiculo'
+          type: 'nodejs'
+
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:3003']
+        labels:
+          service: 'user'
+          type: 'nodejs'
+
+  - job_name: 'historico-service'
+    static_configs:
+      - targets: ['historico-service:3004']
+        labels:
+          service: 'historico'
+          type: 'nodejs'
+
+  - job_name: 'notificacao-service'
+    static_configs:
+      - targets: ['notificacao-service:3005']
+        labels:
+          service: 'notificacao'
+          type: 'nodejs'
+
+  - job_name: 'devolucao-service'
+    static_configs:
+      - targets: ['devolucao-service:3006']
+        labels:
+          service: 'devolucao'
+          type: 'nodejs'
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+          type: 'database'
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+        labels:
+          service: 'kafka'
+          type: 'messaging'
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'node-exporter'
+          type: 'system'
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'cadvisor'
+          type: 'containers'

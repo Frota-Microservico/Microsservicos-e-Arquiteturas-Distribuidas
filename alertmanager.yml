@@ -1,0 +1,138 @@
+global:
+  resolve_timeout: 5m
+  # Configurações de notificação global
+  smtp_from: 'alertmanager@fleet-manager.com'
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_auth_username: 'seu-email@gmail.com'
+  smtp_auth_password: 'sua-senha-app'
+  smtp_require_tls: true
+
+# Templates personalizados (opcional)
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Rota principal de alertas
+route:
+  receiver: 'default-receiver'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  
+  routes:
+    # Alertas críticos
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      repeat_interval: 5m
+
+    # Alertas de warning
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      repeat_interval: 30m
+
+    # Alertas informativos
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      repeat_interval: 1h
+
+    # Alertas de banco de dados
+    - match:
+        category: database
+      receiver: 'database-team'
+      
+    # Alertas de Kafka
+    - match:
+        category: messaging
+      receiver: 'messaging-team'
+
+# Receivers (destinos das notificações)
+receivers:
+  # Receiver padrão
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+
+  # Alertas críticos - múltiplos canais
+  - name: 'critical-alerts'
+    # Slack
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/SEU/WEBHOOK/URL'
+        channel: '#alerts-critical'
+        title: '🚨 ALERTA CRÍTICO'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+    
+    # Email
+    email_configs:
+      - to: 'devops@fleet-manager.com'
+        headers:
+          Subject: '🚨 [CRÍTICO] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Alerta Crítico</h2>
+          <p><strong>Alerta:</strong> {{ .GroupLabels.alertname }}</p>
+          <p><strong>Descrição:</strong> {{ range .Alerts }}{{ .Annotations.description }}{{ end }}</p>
+          <p><strong>Horário:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05" }}</p>
+    
+    # Webhook personalizado
+    webhook_configs:
+      - url: 'http://seu-servidor/api/alerts/critical'
+        send_resolved: true
+
+  # Alertas de warning
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/SEU/WEBHOOK/URL'
+        channel: '#alerts-warning'
+        title: '⚠️ ALERTA WARNING'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  # Alertas informativos
+  - name: 'info-alerts'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/SEU/WEBHOOK/URL'
+        channel: '#alerts-info'
+        title: 'ℹ️ Informação'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  # Time de banco de dados
+  - name: 'database-team'
+    email_configs:
+      - to: 'database-team@fleet-manager.com'
+        headers:
+          Subject: '[DATABASE] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/SEU/WEBHOOK/URL'
+        channel: '#database-alerts'
+
+  # Time de mensageria
+  - name: 'messaging-team'
+    email_configs:
+      - to: 'messaging-team@fleet-manager.com'
+        headers:
+          Subject: '[KAFKA] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/SEU/WEBHOOK/URL'
+        channel: '#kafka-alerts'
+
+# Inibição de alertas (evitar duplicatas)
+inhibit_rules:
+  # Se um serviço está down, não alertar sobre CPU/memória
+  - source_match:
+      severity: 'critical'
+      alertname: 'ContainerDown'
+    target_match:
+      severity: 'warning'
+    equal: ['service']
+
+  # Se há alerta crítico, inibir warnings do mesmo serviço
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service']
