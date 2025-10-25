@@ -240,86 +240,31 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=http://localhost:3000
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
     volumes:
-      # Dados persistentes do Grafana
       - grafana-data:/var/lib/grafana
-      
-      # Datasources (Prometheus, Loki, PostgreSQL)
-      - ./grafana/provisioning/datasources/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
-      
-      # Configuração de dashboards
-      - ./grafana/provisioning/dashboards/dashboard-config.yml:/etc/grafana/provisioning/dashboards/dashboard-config.yml
-      
-      # Dashboards JSON (pasta inteira)
-      - ./grafana/provisioning/dashboards/json:/var/lib/grafana/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - prometheus
-      - loki
     networks:
       - fleet-network
 
   prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    restart: always
-    ports:
-      - "9090:9090"
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./alert.rules.yml:/etc/prometheus/alert.rules.yml
-      - prometheus-data:/prometheus
-    networks:
-      - fleet-network
-
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    restart: always
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/loki-config.yml
-    volumes:
-      - ./loki-config.yml:/etc/loki/loki-config.yml
-      - loki-data:/loki
-    networks:
-      - fleet-network
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: promtail
-    restart: always
-    volumes:
-      - ./promtail-config.yml:/etc/promtail/promtail-config.yml
-      - /var/log:/var/log:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: -config.file=/etc/promtail/promtail-config.yml
-    depends_on:
-      - loki
-    networks:
-      - fleet-network
-
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: alertmanager
-    restart: always
-    ports:
-      - "9093:9093"
-    volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
-      - alertmanager-data:/alertmanager
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-      - '--storage.path=/alertmanager'
-    networks:
-      - fleet-network
+      image: prom/prometheus:latest
+      container_name: prometheus
+      restart: always
+      ports:
+        - "9090:9090"
+      command:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+        - '--web.console.templates=/usr/share/prometheus/consoles'
+      volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        - prometheus-data:/prometheus
+      networks:
+        - fleet-network
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -391,6 +336,4 @@ networks:
 
 volumes:
   prometheus-data:
-  loki-data:
-  alertmanager-data:
   grafana-data:

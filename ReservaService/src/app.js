@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors'; // use import, não require
 import reservaRoutes from './routes/reserva.routes.js';
-import { metricsMiddleware } from '../../metrics.js';
+import { metricsMiddleware } from './metrics.js';
 
 const app = express();
 
@@ -23,5 +23,6 @@ const SERVICE_NAME = 'reserva-service';
 app.use(metricsMiddleware(SERVICE_NAME));
 
 app.use(reservaRoutes);
+
 
 export default app;

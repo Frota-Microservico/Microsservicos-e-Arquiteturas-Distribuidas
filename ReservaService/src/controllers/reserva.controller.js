@@ -5,8 +5,7 @@ export class ReservaController {
 
     async reservar(req, res) {
         try {
-            console.log("ateste", req.body);
-            const reserva = await ReservaService.postReservaVeiculos(req, res);
+            const reserva = await ReservaService.postReservaVeiculos(req);
 
             return res.status(201).json({
                 status: 201,
