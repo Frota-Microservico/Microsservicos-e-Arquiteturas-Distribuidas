@@ -1,6 +1,7 @@
 import { ReservaModel } from "../../models/reserva.model.js";
+import { UserModel } from "../../models/user.model.js";
 import { VeiculoModel } from "../../models/veiculo.model.js";
-import { sendMessage } from "../kafka/producer.js";
+import { sendMessage, sendNotificacaoEvent } from "../kafka/producer.js";
 import { Op } from "sequelize";
 
 export class ReservaService {
@@ -54,61 +55,70 @@ export class ReservaService {
             status: "ATIVA",
         });
 
-        return reserva; 
+        const user = await UserModel.findByPk(idUsuario);
+
+        await sendNotificacaoEvent("notificacao_topic", {
+            to: user.email,
+            subject: "Nova Reserva Criada",
+            message: `Sua reserva para o veículo ${idVeiculo} foi criada com sucesso! data da reserva: ${dt_reserva}, data da devolução: ${dt_devolucao}.`,
+            timestamp: new Date(),
+        });
+
+        return reserva;
     }
 
     static async getListarReservas(req, res) {
-    const reservas = await ReservaModel.findAll({});
-    return res.status(200).json(reservas);
-}
-
-    static async getProcuraReservas(req, res) {
-    const id = parseInt(req.params.id, 10);
-
-    if (isNaN(id)) {
-        return res.status(400).json({ status: 400, detail: "ID inválido" });
+        const reservas = await ReservaModel.findAll({});
+        return res.status(200).json(reservas);
     }
 
-    try {
+    static async getProcuraReservas(req, res) {
+        const id = parseInt(req.params.id, 10);
+
+        if (isNaN(id)) {
+            return res.status(400).json({ status: 400, detail: "ID inválido" });
+        }
+
+        try {
+            const reserva = await ReservaModel.findByPk(id);
+            if (!reserva) {
+                return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
+            }
+            return res.status(200).json(reserva);
+        } catch (error) {
+            console.error("Erro ao buscar reserva:", error);
+            return res.status(500).json({ status: 500, detail: "Erro interno no servidor" });
+        }
+    }
+
+    static async deleteReserva(req, res) {
+        const id = parseInt(req.params.id, 10);
+        const { idUsuario } = req.body;
+
         const reserva = await ReservaModel.findByPk(id);
         if (!reserva) {
             return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
         }
-        return res.status(200).json(reserva);
-    } catch (error) {
-        console.error("Erro ao buscar reserva:", error);
-        return res.status(500).json({ status: 500, detail: "Erro interno no servidor" });
+
+        await reserva.destroy({ usuario: idUsuario });
+
+        return res.status(200).json({ status: 200, message: "Reserva excluída com sucesso" });
     }
-}
-
-    static async deleteReserva(req, res) {
-    const id = parseInt(req.params.id, 10);
-    const { idUsuario } = req.body;
-
-    const reserva = await ReservaModel.findByPk(id);
-    if (!reserva) {
-        return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
-    }
-
-    await reserva.destroy({ usuario: idUsuario });
-
-    return res.status(200).json({ status: 200, message: "Reserva excluída com sucesso" });
-}
 
     static async putReserva(req, res) {
-    const id = parseInt(req.params.id, 10);
-    const { dt_reserva, dt_devolucao, idUsuario } = req.body;
+        const id = parseInt(req.params.id, 10);
+        const { dt_reserva, dt_devolucao, idUsuario } = req.body;
 
-    const reserva = await ReservaModel.findByPk(id);
-    if (!reserva) {
-        return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
+        const reserva = await ReservaModel.findByPk(id);
+        if (!reserva) {
+            return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
+        }
+
+        await reserva.update(
+            { dt_reserva, dt_devolucao },
+            { usuario: idUsuario }
+        );
+
+        return res.status(200).json(await ReservaModel.findByPk(id));
     }
-
-    await reserva.update(
-        { dt_reserva, dt_devolucao },
-        { usuario: idUsuario }
-    );
-
-    return res.status(200).json(await ReservaModel.findByPk(id));
-}
 }

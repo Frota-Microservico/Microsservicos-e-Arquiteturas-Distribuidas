@@ -15,3 +15,10 @@ scrape_configs:
         labels:
           service: 'reserva'
           type: 'nodejs'
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'Docker Host'
+
