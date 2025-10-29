@@ -8,7 +8,7 @@ export default function ReservationsPage() {
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const { user, loading } = useAuth(true); // pega o usuário logado
+  const { user, loading } = useAuth(false); // pega o usuário logado
   const userId = user?.id; // pega o id real do usuário logado
 
   // Buscar veículos disponíveis do backend
@@ -26,44 +26,49 @@ export default function ReservationsPage() {
     fetchVehicles();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const vehicle = vehicles.find(
-      (v) => `${v.modelo} (${v.placa})` === selectedVehicle
-    );
+  if (!userId) {
+    alert("Usuário não logado!");
+    return;
+  }
 
-    if (!vehicle) {
-      alert("Veículo inválido!");
-      return;
+  const vehicle = vehicles.find(
+    (v) => `${v.modelo} (${v.placa})` === selectedVehicle
+  );
+
+  if (!vehicle) {
+    alert("Veículo inválido!");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3001/api/reservas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        idUsuario: userId,         // garante que o backend receba o id do usuário
+        idVeiculo: vehicle.id,
+        dt_reserva: startDate,
+        dt_devolucao: endDate,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.detail || "Erro ao criar reserva");
     }
 
-    try {
-      const res = await fetch("http://localhost:3001/api/reservas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idUsuario: userId,
-          idVeiculo: vehicle.id,
-          dt_reserva: startDate,
-          dt_devolucao: endDate,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || "Erro ao criar reserva");
-      }
-
-      alert("Reserva criada com sucesso!");
-      setSelectedVehicle("");
-      setStartDate("");
-      setEndDate("");
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message);
-    }
-  };
+    alert("Reserva criada com sucesso!");
+    setSelectedVehicle("");
+    setStartDate("");
+    setEndDate("");
+  } catch (err: any) {
+    console.error(err);
+    alert(err.message);
+  }
+};
 
   return (
     <>

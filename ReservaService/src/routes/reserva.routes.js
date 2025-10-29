@@ -6,15 +6,15 @@ import { metricsEndpoint } from '../metrics.js';
 const reservaController = new ReservaController();
 const router = Router();
 
-router.post("/api/reservas", authMiddleware(false), reservaController.reservar); // Cadastrar uma reserva de veiculo
+router.post("/api/reservas", reservaController.reservar); // Cadastrar uma reserva de veiculo
 
-router.get("/api/reservas", authMiddleware(false), reservaController.listarReserva);
+router.get("/api/reservas", reservaController.listarReserva);
 
-router.get("/api/reservas/:id", authMiddleware(false), reservaController.procurarReserva);
+router.get("/api/reservas/:id", reservaController.procurarReserva);
 
-router.delete("/api/reservas/:id", authMiddleware(false), reservaController.deletaReserva);
+router.delete("/api/reservas/:id", reservaController.deletaReserva);
 
-router.put("/api/reservas/:id", authMiddleware(false), reservaController.updateReserva);
+router.put("/api/reservas/:id", reservaController.updateReserva);
 
 router.get('/metrics', metricsEndpoint);
 

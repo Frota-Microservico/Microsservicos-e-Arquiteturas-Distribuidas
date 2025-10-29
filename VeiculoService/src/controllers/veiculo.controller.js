@@ -45,8 +45,8 @@ export class VeiculoController {
             if (isNaN(id)) {
                 return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
-
-            const verificaDelete = await VeiculoService.deletaVeiculo(id);
+            
+            const verificaDelete = await VeiculoService.deletaVeiculo(id, req.userId);
             
             if (!verificaDelete) {
                 return res.status(400).json({ status: 400, detail: "Não foi encontrado o veiculo" });
@@ -67,10 +67,10 @@ export class VeiculoController {
         try {
             const id = parseInt(req.params.id, 10);
             if (isNaN(id)) {
-            return res.status(400).json({ status: 400, detail: "ID inválido" });
+                return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
-
-            const veiculo = await VeiculoService.updateVeiculo(id, req.body);
+            
+            const veiculo = await VeiculoService.updateVeiculo(id, req.body, req.userId);
 
             if (!veiculo) {
             return res.status(404).json({ status: 404, detail: "Veículo não encontrado" });

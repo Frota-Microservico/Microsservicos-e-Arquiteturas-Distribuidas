@@ -1,44 +1,60 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth, logout } from "../utils/auth";
 import Navbar from "../components/navbar";
 
 export default function AllReservationsPage() {
   const { user, loading } = useAuth(true);
-  
-  // Simulação de reservas de todos os usuários
-  const [reservations, setReservations] = useState([
-    {
-      id: 1,
-      user: "Fabio Favareto",
-      vehicle: "Fiat Uno (ABC-1234)",
-      startDate: "2025-10-01",
-      endDate: "2025-10-03",
-    },
-    {
-      id: 2,
-      user: "Luis Pereira",
-      vehicle: "Ford Ka (XYZ-9876)",
-      startDate: "2025-10-05",
-      endDate: "2025-10-07",
-    },
-    {
-      id: 3,
-      user: "Ana Souza",
-      vehicle: "Chevrolet Onix (DEF-5678)",
-      startDate: "2025-10-08",
-      endDate: "2025-10-10",
-    },
-  ]);
-
+  const [reservations, setReservations] = useState<any[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
 
-  const handleCancel = (id: number) => {
-    setReservations((prev) => prev.filter((res) => res.id !== id));
-    setIsCancelOpen(false);
+  // Buscar reservas do backend
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/api/reservas"); // ajuste a URL conforme seu backend
+        if (!res.ok) throw new Error("Erro ao buscar reservas");
+        const data = await res.json();
+        setReservations(
+          data.map((r: any) => ({
+            id: r.id,
+            user: r.user?.name || `Usuário #${r.id_usuario}`,
+            vehicle: r.veiculo ? `${r.veiculo.modelo} (${r.veiculo.placa})` : `Veículo #${r.id_veiculo}`,
+            status: r.status || "DESCONHECIDO",
+            startDate: r.dt_reserva,
+            endDate: r.dt_devolucao,
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchReservations();
+  }, []);
+
+  const handleCancel = async (id: number) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/reservas/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Erro ao cancelar reserva");
+      setReservations((prev) => prev.filter((res) => res.id !== id));
+      setIsCancelOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Falha ao cancelar reserva");
+    }
   };
 
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // mês começa em 0
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
   return (
     <>
       <Navbar />
@@ -56,6 +72,7 @@ export default function AllReservationsPage() {
                 <th className="px-4 py-2 text-left">ID</th>
                 <th className="px-4 py-2 text-left">Usuário</th>
                 <th className="px-4 py-2 text-left">Veículo</th>
+                <th className="px-4 py-2 text-left">Status</th>
                 <th className="px-4 py-2 text-left">Data Início</th>
                 <th className="px-4 py-2 text-left">Data Fim</th>
                 <th className="px-4 py-2 text-center">Ações</th>
@@ -67,8 +84,9 @@ export default function AllReservationsPage() {
                   <td className="px-4 py-2">{res.id}</td>
                   <td className="px-4 py-2">{res.user}</td>
                   <td className="px-4 py-2">{res.vehicle}</td>
-                  <td className="px-4 py-2">{res.startDate}</td>
-                  <td className="px-4 py-2">{res.endDate}</td>
+                  <td className="px-4 py-2">{res.status}</td>
+                  <td className="px-4 py-2">{formatDate(res.startDate)}</td>
+                  <td className="px-4 py-2">{formatDate(res.endDate)}</td>
                   <td className="px-4 py-2 text-center space-x-2">
                     {/* Cancelar reserva */}
                     <button

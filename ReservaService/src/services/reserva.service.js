@@ -66,10 +66,22 @@ export class ReservaService {
 
         return reserva;
     }
+        
+    static async getListarReservas() {
+        try {
+            const reservas = await ReservaModel.findAll({
+                include: [
+                    { model: UserModel, attributes: ["id", "name", "email"], required: false },
+                    { model: VeiculoModel, attributes: ["id", "modelo", "placa"], required: false },
+                ],
+                order: [["dt_reserva", "DESC"]],
+            });
 
-    static async getListarReservas(req, res) {
-        const reservas = await ReservaModel.findAll({});
-        return res.status(200).json(reservas);
+            return reservas.map(r => r.toJSON()); // apenas os dados
+        } catch (error) {
+            console.error("Erro ao listar reservas:", error);
+            throw new Error("Erro ao listar reservas");
+        }
     }
 
     static async getProcuraReservas(req, res) {

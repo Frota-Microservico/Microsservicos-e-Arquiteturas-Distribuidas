@@ -1,31 +1,58 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/navbar";
+import { useAuth } from "../utils/auth";
 
 export default function MyReservationsPage() {
-  const [reservations, setReservations] = useState([
-    {
-      id: 1,
-      vehicle: "Fiat Uno (ABC-1234)",
-      startDate: "2025-10-01",
-      endDate: "2025-10-03",
-    },
-    {
-      id: 2,
-      vehicle: "Ford Ka (XYZ-9876)",
-      startDate: "2025-10-05",
-      endDate: "2025-10-07",
-    },
-  ]);
+  const { user, loading } = useAuth(false); // pega o usuário logado
+  const userId = user?.id;
 
+  const [reservations, setReservations] = useState<any[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+
+  // Buscar reservas do usuário logado
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchReservations = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/api/reservas");
+        if (!res.ok) throw new Error("Erro ao buscar reservas");
+        const data = await res.json();
+
+        // Filtra apenas as reservas do usuário logado
+        const minhasReservas = data
+          .map((r: any) => ({
+            ...r,
+            vehicle: r.veiculo ? `${r.veiculo.modelo} (${r.veiculo.placa})` : "N/D",
+            startDate: r.dt_reserva,
+            endDate: r.dt_devolucao,
+          }))
+          .filter((r: any) => r.id_usuario === userId);
+
+        setReservations(minhasReservas);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchReservations();
+  }, [userId]);
 
   // Função para cancelar reserva
   const handleCancel = (id: number) => {
     setReservations((prev) => prev.filter((res) => res.id !== id));
     setIsCancelOpen(false);
   };
+
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // mês começa em 0
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
   return (
     <>
@@ -43,6 +70,7 @@ export default function MyReservationsPage() {
               <tr className="bg-blue-50 text-blue-700">
                 <th className="px-4 py-2 text-left">ID</th>
                 <th className="px-4 py-2 text-left">Veículo</th>
+                <th className="px-4 py-2 text-left">Status</th>
                 <th className="px-4 py-2 text-left">Data Início</th>
                 <th className="px-4 py-2 text-left">Data Fim</th>
                 <th className="px-4 py-2 text-center">Ações</th>
@@ -53,8 +81,9 @@ export default function MyReservationsPage() {
                 <tr key={res.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2">{res.id}</td>
                   <td className="px-4 py-2">{res.vehicle}</td>
-                  <td className="px-4 py-2">{res.startDate}</td>
-                  <td className="px-4 py-2">{res.endDate}</td>
+                  <td className="px-4 py-2">{res.status}</td>
+                  <td className="px-4 py-2">{formatDate(res.startDate)}</td>
+                  <td className="px-4 py-2">{formatDate(res.endDate)}</td>
                   <td className="px-4 py-2 text-center space-x-2">
                     {/* Cancelar reserva */}
                     <button

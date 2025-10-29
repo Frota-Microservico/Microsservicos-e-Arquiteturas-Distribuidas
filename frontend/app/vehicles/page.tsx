@@ -207,6 +207,7 @@ export default function VehiclesPage() {
                   const modelo = formData.get("modelo") as string;
                   const ano = Number(formData.get("ano"));
                   const status = (formData.get("status") === "on") ? "INDISPONIVEL" : "DISPONIVEL";
+                  const id = formData.get("id");
 
                   try {
                     // Verificar duplicidade de placa
@@ -226,7 +227,7 @@ export default function VehiclesPage() {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`,
                       },
-                      body: JSON.stringify({ placa, modelo, ano, status }),
+                      body: JSON.stringify({ placa, modelo, ano, status}),
                     });
 
                     if (!res.ok) throw new Error("Erro ao atualizar veículo");

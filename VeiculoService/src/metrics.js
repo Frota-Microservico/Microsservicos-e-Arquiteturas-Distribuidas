@@ -103,13 +103,15 @@ const availableVehicles = new promClient.Gauge({
  */
 export const metricsMiddleware = (serviceName) => {
   return (req, res, next) => {
+    if (req.path === '/metrics') { return next(); }
+
     const start = Date.now();
-    
+
     // Capturar o fim da resposta
     res.on('finish', () => {
       const duration = (Date.now() - start) / 1000;
-      const route = req.route?.path || req.path || 'unknown';
-      
+      const route = req.route?.path || req.originalUrl || 'unknown';
+
       // Incrementar contador de requisições
       httpRequestsTotal.inc({
         method: req.method,
@@ -117,7 +119,7 @@ export const metricsMiddleware = (serviceName) => {
         status: res.statusCode,
         service: serviceName,
       });
-      
+
       // Registrar duração da requisição
       httpRequestDuration.observe(
         {
@@ -129,7 +131,7 @@ export const metricsMiddleware = (serviceName) => {
         duration
       );
     });
-    
+
     next();
   };
 };
@@ -167,7 +169,7 @@ export const recordDbOperation = (operation, table, status, serviceName, duratio
     status,
     service: serviceName,
   });
-  
+
   if (duration) {
     dbQueryDuration.observe(
       {
@@ -203,7 +205,7 @@ export const recordKafkaMessage = (topic, type, status, serviceName, latency) =>
     status, // 'success' ou 'error'
     service: serviceName,
   });
-  
+
   if (latency) {
     kafkaLatency.observe(
       {
@@ -235,13 +237,13 @@ export const updateAvailableVehicles = (count, serviceName) => {
  */
 export const startMetricsServer = (port, serviceName) => {
   const metricsApp = express();
-  
+
   metricsApp.get('/metrics', metricsEndpoint);
-  
+
   metricsApp.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: serviceName });
   });
-  
+
   metricsApp.listen(port, () => {
     console.log(`📊 Servidor de métricas rodando na porta ${port}`);
   });

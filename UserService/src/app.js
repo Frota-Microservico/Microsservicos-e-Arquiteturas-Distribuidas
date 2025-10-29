@@ -5,7 +5,7 @@ import userRoutes from './routes/user.routes.js';
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], // frontend
+  origin: ['http://localhost:3008', 'http://127.0.0.1:3008'], // frontend
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));

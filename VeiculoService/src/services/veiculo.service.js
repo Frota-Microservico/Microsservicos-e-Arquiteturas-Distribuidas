@@ -47,10 +47,8 @@ export class VeiculoService {
     return res.status(200).json(veiculo);
   }
 
-  static async updateVeiculo(req, res) {
-    const { id } = req.params;
-    const { modelo, placa, ano, status } = req.body;
-    const userId = req.userId;
+  static async updateVeiculo(id, data, userId) {
+    const { modelo, placa, ano, status } = data;
 
     const veiculo = await VeiculoModel.findByPk(id);
     if (!veiculo) {
@@ -81,12 +79,10 @@ export class VeiculoService {
       },
       { usuario: userId }
     );
-    return res.status(200).json(veiculo);
+    return veiculo; // Retorna o veículo atualizado
   }
 
-  static async deletaVeiculo(req, res) {
-    const { id } = req.params;
-    const userId = req.userId;
+  static async deletaVeiculo(id, userId) {
 
     const veiculo = await VeiculoModel.findByPk(id);
     if (!veiculo) {
@@ -95,7 +91,7 @@ export class VeiculoService {
 
     await veiculo.destroy({ usuario: userId });
 
-    return res.status(204).send();
+    return "deleted"; // indica sucesso
   }
 
   static async startKafkaConsumer() {

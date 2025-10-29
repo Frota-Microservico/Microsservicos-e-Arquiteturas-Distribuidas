@@ -7,7 +7,7 @@ export default function HomePage() {
 
   const handleGrafana = () => {
     // Substitua pelo link do seu Grafana
-    window.open("https://grafana.com/", "_blank");
+    window.open("http://localhost:3000/login", "_blank");
   };
 
   return (
