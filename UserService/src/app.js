@@ -1,6 +1,7 @@
 import express from 'express';
-import cors from 'cors'; // use import, não require
+import cors from 'cors';
 import userRoutes from './routes/user.routes.js';
+import { metricsMiddleware } from './metrics.js';
 
 const app = express();
 
@@ -11,6 +12,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+const SERVICE_NAME = 'user-service';
+app.use(metricsMiddleware(SERVICE_NAME));
 
 app.use(userRoutes);
 

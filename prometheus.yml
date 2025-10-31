@@ -15,6 +15,21 @@ scrape_configs:
         labels:
           service: 'reserva'
           type: 'nodejs'
+  # Veiculo Service
+  - job_name: 'veiculo-service'
+    static_configs:
+      - targets: ['veiculo-service:3002']
+        labels:
+          service: 'veiculo'
+          type: 'nodejs'
+
+  # User Service
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:3003']
+        labels:
+          service: 'user'
+          type: 'nodejs'
 
   - job_name: 'node-exporter'
     static_configs:

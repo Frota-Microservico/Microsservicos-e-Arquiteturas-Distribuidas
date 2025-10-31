@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { UserController } from "../controllers/user.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js"; // vamos criar
+import { authMiddleware } from "../middlewares/auth.middleware.js"; 
+import { metricsEndpoint } from '../metrics.js';
 
 const userController = new UserController();
 const router = Router();
@@ -18,5 +19,7 @@ router.put("/api/users/:id", authMiddleware(true), userController.updateUser);
 
 // Deletar usuário – só admins
 router.delete("/api/users/:id", authMiddleware(true), userController.deleteUser);
+
+router.get('/metrics', metricsEndpoint);
 
 export default router;

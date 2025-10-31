@@ -7,11 +7,11 @@ export class HistoricoService {
     static async getListaHistorico(req, res) {
         const historico = await VeiculoModel.findAll();
 
-        await sendHistoricoEvent("historico_topic", {
-            acao: "LISTAGEM",
-            quantidade: historico.length,
-            timestamp: new Date()
-        });
+        // await sendHistoricoEvent("historico_topic", {
+        //     acao: "LISTAGEM",
+        //     quantidade: historico.length,
+        //     timestamp: new Date()
+        // });
 
         return historico;
     }
