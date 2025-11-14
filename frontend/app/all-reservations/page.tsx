@@ -35,16 +35,24 @@ export default function AllReservationsPage() {
   }, []);
 
   const handleCancel = async (id: number) => {
+    if (!confirm("Deseja realmente cancelar esta reserva?")) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/reservas/${id}`, {
+      const res = await fetch(`http://localhost:3001/api/reservas`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id,
+        })
       });
       if (!res.ok) throw new Error("Erro ao cancelar reserva");
-      setReservations((prev) => prev.filter((res) => res.id !== id));
-      setIsCancelOpen(false);
+      alert("Reserva cancelada com sucesso!");
+      // Atualiza reservas
+      location.reload();
     } catch (err) {
       console.error(err);
-      alert("Falha ao cancelar reserva");
+      alert("Erro ao cancelar reserva");
     }
   };
 
@@ -55,6 +63,30 @@ export default function AllReservationsPage() {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   }
+
+  function isInUse(startDate: string, endDate: string) {
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return now >= start && now <= end;
+}
+
+function getStatus(res: any) {
+  // Prioridade para status vindo do backend
+  if (res.status === "FINALIZADA") return "FINALIZADA";
+  if (res.status === "CANCELADA") return "CANCELADA";
+
+  // Se o período está ativo
+  if (isInUse(res.startDate, res.endDate)) return "EM USO";
+
+  // Caso contrário mostra o status padrão
+  return res.status;
+}
+
   return (
     <>
       <Navbar />
@@ -84,20 +116,20 @@ export default function AllReservationsPage() {
                   <td className="px-4 py-2">{res.id}</td>
                   <td className="px-4 py-2">{res.user}</td>
                   <td className="px-4 py-2">{res.vehicle}</td>
-                  <td className="px-4 py-2">{res.status}</td>
+                  <td className="px-4 py-2">{getStatus(res)}</td>
                   <td className="px-4 py-2">{formatDate(res.startDate)}</td>
                   <td className="px-4 py-2">{formatDate(res.endDate)}</td>
                   <td className="px-4 py-2 text-center space-x-2">
-                    {/* Cancelar reserva */}
-                    <button
-                      onClick={() => {
-                        setSelectedReservation(res);
-                        setIsCancelOpen(true);
-                      }}
-                      className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Cancelar
-                    </button>
+                      {getStatus(res) !== "FINALIZADA" &&
+                        getStatus(res) !== "CANCELADA" &&
+                        getStatus(res) !== "EM USO" && (
+                        <button
+                          onClick={() => handleCancel(res.id)}
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                          Cancelar
+                        </button>
+                      )}
                   </td>
                 </tr>
               ))}

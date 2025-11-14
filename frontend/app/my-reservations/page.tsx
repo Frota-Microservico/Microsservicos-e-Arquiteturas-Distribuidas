@@ -40,19 +40,87 @@ export default function MyReservationsPage() {
     fetchReservations();
   }, [userId]);
 
-  // Função para cancelar reserva
-  const handleCancel = (id: number) => {
-    setReservations((prev) => prev.filter((res) => res.id !== id));
-    setIsCancelOpen(false);
+ // Função de devolução
+const handleReturn = async (reservaId: number, veiculoId: number) => {
+  if (!confirm("Confirmar devolução deste veículo?")) return;
+
+  try {
+    const res = await fetch(`http://localhost:3006/api/devolucao`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        reservaId,
+        veiculoId
+      })
+    });
+
+    alert("Veículo devolvido com sucesso!");
+
+    // Atualiza lista
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao processar devolução");
+  }
+};
+
+  // Função de cancelamento
+  const handleCancel = async (id: number) => {
+    if (!confirm("Deseja realmente cancelar esta reserva?")) return;
+    try {
+      const res = await fetch(`http://localhost:3001/api/reservas`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id,
+        })
+      });
+      if (!res.ok) throw new Error("Erro ao cancelar reserva");
+      alert("Reserva cancelada com sucesso!");
+      // Atualiza reservas
+      location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao cancelar reserva");
+    }
   };
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // mês começa em 0
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 }
+
+function isInUse(startDate: string, endDate: string) {
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return now >= start && now <= end;
+}
+
+function getStatus(res: any) {
+  // Prioridade para status vindo do backend
+  if (res.status === "FINALIZADA") return "FINALIZADA";
+  if (res.status === "CANCELADA") return "CANCELADA";
+
+  // Se o período está ativo
+  if (isInUse(res.startDate, res.endDate)) return "EM USO";
+
+  // Caso contrário mostra o status padrão
+  return res.status;
+}
+
 
   return (
     <>
@@ -81,20 +149,33 @@ function formatDate(dateString: string) {
                 <tr key={res.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2">{res.id}</td>
                   <td className="px-4 py-2">{res.vehicle}</td>
-                  <td className="px-4 py-2">{res.status}</td>
+                  <td className="px-4 py-2">{getStatus(res)}</td>
                   <td className="px-4 py-2">{formatDate(res.startDate)}</td>
                   <td className="px-4 py-2">{formatDate(res.endDate)}</td>
-                  <td className="px-4 py-2 text-center space-x-2">
-                    {/* Cancelar reserva */}
-                    <button
-                      onClick={() => {
-                        setSelectedReservation(res);
-                        setIsCancelOpen(true);
-                      }}
-                      className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Cancelar
-                    </button>
+                  <td className="p-2 flex gap-2">
+                    <>
+                      {/* Botão DEVOLVER → apenas quando está em uso */}
+                      {getStatus(res) === "EM USO" && (
+                        <button
+                          onClick={() => handleReturn(res.id, res.veiculo.id)}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Devolver
+                        </button>
+                      )}
+
+                      {/* Botão CANCELAR → apenas quando NÃO está finalizada, cancelada ou em uso */}
+                      {getStatus(res) !== "FINALIZADA" &&
+                      getStatus(res) !== "CANCELADA" &&
+                      getStatus(res) !== "EM USO" && (
+                        <button
+                          onClick={() => handleCancel(res.id)}
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                          Cancelar
+                        </button>
+                      )}
+                    </>
                   </td>
                 </tr>
               ))}

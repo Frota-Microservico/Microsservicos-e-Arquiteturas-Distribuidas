@@ -4,6 +4,15 @@ import { VeiculoModel } from "../../models/veiculo.model.js";
 import { sendMessage, sendNotificacaoEvent } from "../kafka/producer.js";
 import { Op } from "sequelize";
 
+function formatarData(data) {
+  const dt = new Date(data);
+  return dt.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 export class ReservaService {
 
     static async postReservaVeiculos(req) {
@@ -57,12 +66,26 @@ export class ReservaService {
 
         const user = await UserModel.findByPk(idUsuario);
 
-        await sendNotificacaoEvent("notificacao_topic", {
-            to: user.email,
-            subject: "Nova Reserva Criada",
-            message: `Sua reserva para o veículo ${idVeiculo} foi criada com sucesso! data da reserva: ${dt_reserva}, data da devolução: ${dt_devolucao}.`,
-            timestamp: new Date(),
-        });
+        const dataReservaFormatada = formatarData(dt_reserva);
+        const dataDevolucaoFormatada = formatarData(dt_devolucao);
+        const mensagem = `
+        <p>Olá, ${user.name}!</p>
+        <p>Sua reserva foi criada com sucesso ✅</p>
+        <p>
+            🚗 <strong>Veículo:</strong> ${veiculo.modelo} (${veiculo.placa})<br>
+            📅 <strong>Data da reserva:</strong> ${dataReservaFormatada}<br>
+            📆 <strong>Data da devolução:</strong> ${dataDevolucaoFormatada}
+        </p>
+        <p>Agradecemos por utilizar nosso sistema de reservas.</p>
+        `;
+        
+    // Envia notificação
+    await sendNotificacaoEvent("notificacao_topic", {
+      to: user.email,
+      subject: "Confirmação de Reserva de Veículo",
+      message: mensagem.trim(),
+      timestamp: new Date(),
+    });
 
         return reserva;
     }
@@ -104,15 +127,14 @@ export class ReservaService {
     }
 
     static async deleteReserva(req, res) {
-        const id = parseInt(req.params.id, 10);
-        const { idUsuario } = req.body;
+        const { id } = req.body;
 
         const reserva = await ReservaModel.findByPk(id);
         if (!reserva) {
             return res.status(404).json({ status: 404, detail: "Reserva não encontrada" });
         }
 
-        await reserva.destroy({ usuario: idUsuario });
+        await reserva.destroy();
 
         return res.status(200).json({ status: 200, message: "Reserva excluída com sucesso" });
     }

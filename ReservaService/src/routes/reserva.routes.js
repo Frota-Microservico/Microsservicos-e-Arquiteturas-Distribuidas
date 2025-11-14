@@ -10,9 +10,9 @@ router.post("/api/reservas", reservaController.reservar); // Cadastrar uma reser
 
 router.get("/api/reservas", reservaController.listarReserva);
 
-router.get("/api/reservas/:id", reservaController.procurarReserva);
+router.delete("/api/reservas", reservaController.deletaReserva);
 
-router.delete("/api/reservas/:id", reservaController.deletaReserva);
+router.get("/api/reservas/:id", reservaController.procurarReserva);
 
 router.put("/api/reservas/:id", reservaController.updateReserva);
 

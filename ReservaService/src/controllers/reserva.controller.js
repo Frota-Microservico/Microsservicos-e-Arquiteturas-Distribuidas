@@ -48,13 +48,13 @@ export class ReservaController {
 
     async deletaReserva(req, res) {
         try {
-            const id = parseInt(req.params.id, 10);
+            const { id } = req.body;
 
             if (isNaN(id)) {
                 return res.status(400).json({ status: 400, detail: "ID inválido" });
             }
 
-            const verificaDelete = await ReservaService.deleteReserva(id);
+            const verificaDelete = await ReservaService.deleteReserva(req, res);
 
             if (!verificaDelete) {
                 return res.status(400).json({ status: 400, detail: "Não foi encontrado a reserva" });
