@@ -238,7 +238,7 @@
           "refId": "A"
         }
       ],
-      "title": "New panel",
+      "title": "Total de Requisições HTTP",
       "type": "timeseries"
     },
     {
